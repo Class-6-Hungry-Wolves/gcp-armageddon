@@ -1,4 +1,3 @@
-# Subnets here
 resource "google_compute_subnetwork" "hw_team_uscentral" {
   name                     = "hw_team_uscentral"
   ip_cidr_range            = "10.80.60.0/24"
