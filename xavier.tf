@@ -40,3 +40,13 @@ resource "google_compute_firewall" "xavier-allow-icmp" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+
+resource "google_network_connectivity_spoke" "xavier_spoke"  {
+  name = "xavier_spoke"
+  location = "global"
+  description = "Spoke for xavier vpc mesh"
+  hub = google_network_connectivity_hub.team-mesh.id
+  linked_vpc_network {
+    uri = google_compute_network.xavier_vpc.self_link
+  }
+}

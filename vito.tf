@@ -40,3 +40,13 @@ resource "google_compute_firewall" "vito-allow-icmp" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+
+resource "google_network_connectivity_spoke" "vito_spoke"  {
+  name = "vito_spoke"
+  location = "global"
+  description = "Spoke for vito vpc mesh"
+  hub = google_network_connectivity_hub.team-mesh.id
+  linked_vpc_network {
+    uri = google_compute_network.vito_vpc.self_link
+  }
+}

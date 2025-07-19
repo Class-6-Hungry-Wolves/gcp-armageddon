@@ -39,3 +39,12 @@ resource "google_compute_firewall" "joshua-allow-icmp" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+resource "google_network_connectivity_spoke" "joshua_spoke"  {
+  name = "joshua_spoke"
+  location = "global"
+  description = "Spoke for joshua vpc mesh"
+  hub = google_network_connectivity_hub.team-mesh.id
+  linked_vpc_network {
+    uri = google_compute_network.joshua_vpc.self_link
+  }
+}

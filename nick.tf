@@ -42,3 +42,13 @@ resource "google_compute_firewall" "nick-allow-icmp" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+
+resource "google_network_connectivity_spoke" "nick_spoke"  {
+  name = "nick_spoke"
+  location = "global"
+  description = "Spoke for nick vpc mesh"
+  hub = google_network_connectivity_hub.team-mesh.id
+  linked_vpc_network {
+    uri = google_compute_network.nick_vpc.self_link
+  }
+}

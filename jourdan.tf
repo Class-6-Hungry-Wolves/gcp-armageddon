@@ -39,3 +39,12 @@ resource "google_compute_firewall" "jourdan-allow-icmp" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+resource "google_network_connectivity_spoke" "jourdan_spoke"  {
+  name = "jourdan_spoke"
+  location = "global"
+  description = "Spoke for jourdan vpc mesh"
+  hub = google_network_connectivity_hub.team-mesh.id
+  linked_vpc_network {
+    uri = google_compute_network.jourdan_vpc.self_link
+  }
+}

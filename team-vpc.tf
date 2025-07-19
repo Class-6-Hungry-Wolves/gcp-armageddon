@@ -29,3 +29,13 @@ resource "google_compute_firewall" "allow-icmp" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+
+resource "google_network_connectivity_spoke" "team_spoke"  {
+  name = "team_spoke"
+  location = "global"
+  description = "Spoke for team vpc mesh"
+  hub = google_network_connectivity_hub.team-mesh.id
+  linked_vpc_network {
+    uri = google_compute_network.hw_team_main.self_link
+  }
+}
