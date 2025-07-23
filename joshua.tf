@@ -53,3 +53,68 @@ resource "google_network_connectivity_spoke" "joshua_spoke" {
     uri = google_compute_network.joshua_vpc.self_link
   }
 }
+
+
+resource "google_compute_vpn_gateway" "joshua_target_gateway" {
+  name     = "joshua-vpn"
+  network  = google_compute_network.joshua_vpc.id
+  provider = google.hw-team
+}
+
+resource "google_compute_address" "joshua_vpn_static_ip" {
+  name     = "joshua-vpn-static-ip"
+  provider = google.hw-team
+}
+
+resource "google_compute_forwarding_rule" "joshua_fr_esp" {
+  name        = "joshua-fr-esp"
+  ip_protocol = "ESP"
+  ip_address  = google_compute_address.joshua_vpn_static_ip.address
+  target      = google_compute_vpn_gateway.joshua_target_gateway.id
+  provider    = google.hw-team
+}
+
+resource "google_compute_forwarding_rule" "joshua_fr_udp500" {
+  name        = "joshua-fr-udp500"
+  ip_protocol = "UDP"
+  port_range  = "500"
+  ip_address  = google_compute_address.joshua_vpn_static_ip.address
+  target      = google_compute_vpn_gateway.joshua_target_gateway.id
+  provider    = google.hw-team
+}
+
+resource "google_compute_forwarding_rule" "joshua_fr_udp4500" {
+  name        = "joshua-fr-udp4500"
+  ip_protocol = "UDP"
+  port_range  = "4500"
+  ip_address  = google_compute_address.joshua_vpn_static_ip.address
+  target      = google_compute_vpn_gateway.joshua_target_gateway.id
+  provider    = google.hw-team
+}
+
+
+resource "google_compute_vpn_tunnel" "joshua_tunnel" {
+  name                    = "joshua-tunnel"
+  peer_ip                 = google_compute_address.balerica_vpn_static_ip.address
+  shared_secret           = var.vpn_shared_secret02
+  target_vpn_gateway      = google_compute_vpn_gateway.joshua_target_gateway.id
+  provider                = google.hw-team
+  local_traffic_selector  = [google_compute_subnetwork.joshua_subnet.ip_cidr_range]
+  remote_traffic_selector = [google_compute_subnetwork.vito_balerica_inc_private.ip_cidr_range]
+
+  depends_on = [
+    google_compute_forwarding_rule.joshua_fr_esp,
+    google_compute_forwarding_rule.joshua_fr_udp500,
+    google_compute_forwarding_rule.joshua_fr_udp4500,
+  ]
+}
+
+resource "google_compute_route" "joshua-to-balerica-route" {
+  name       = "joshua-to-balerica-route"
+  network    = google_compute_network.joshua_vpc.name  
+  dest_range = "10.40.20.0/24"
+  priority   = 1000
+  provider   = google.hw-team
+
+  next_hop_vpn_tunnel = google_compute_vpn_tunnel.joshua_tunnel.id
+}

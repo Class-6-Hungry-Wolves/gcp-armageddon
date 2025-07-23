@@ -1,7 +1,7 @@
 provider "google" {
-  project     = "balerica-project-65702"
-  region      = "sao-paulo"
-  credentials = "balerica-project-65702-e892689e79d7.json"
+  project     = "class65gcpproject-462600"
+  region      = "southamerica-east1"
+  credentials = "class65gcpproject-462600-3dd7a46c5330.json"
   alias       = "balerica"
 }
 
