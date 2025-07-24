@@ -7,3 +7,4 @@
 .terraform 
 # Ignore JSON key files
 *.json
+*.sh 
