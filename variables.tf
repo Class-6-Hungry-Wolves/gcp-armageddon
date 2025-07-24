@@ -1,5 +1,4 @@
-variable "vpn_shared_secret01" {}
-variable "vpn_shared_secret02" {}
-variable "vpn_shared_secret03" {}
-variable "vpn_shared_secret04" {}
-variable "vpn_shared_secret05" {}
+variable "nick_vpn_shared_secret" {}
+variable "xavier_vpn_shared_secret" {}
+variable "jourdan_vpn_shared_secret" {}
+variable "joshua_vpn_shared_secret" {}
