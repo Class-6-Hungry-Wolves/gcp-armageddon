@@ -3,7 +3,7 @@
 # Nick
 provider "google" {
   project     = "class65gcpproject-462600"
-  region      = "london"
+  region      = "europe-west2"
   credentials = "class65gcpproject-462600-3dd7a46c5330.json"
   alias       = "nick"
 }
@@ -11,36 +11,36 @@ provider "google" {
 # Team 2 provider
 # Xavier
 provider "google" {
-  project     = "class65gcpproject-462600"
-  region      = "london"
-  credentials = "class65gcpproject-462600-3dd7a46c5330.json"
+  project     = "gcp-01-453500"
+  region      = "us-west1"
+  credentials = "key.json"
   alias       = "xavier"
 }
 
 # Team 3 provider
 # Jourdan
-provider "google" {
-  project     = "class65gcpproject-462600"
-  region      = "london"
-  credentials = "class65gcpproject-462600-3dd7a46c5330.json"
-  alias       = "jourdan"
-}
+# provider "google" {
+#   project     = "class65gcpproject-462600"
+#   region      = "london"
+#   credentials = "class65gcpproject-462600-3dd7a46c5330.json"
+#   alias       = "jourdan"
+# }
 
 # Team 4 provider
-# Joshua
-provider "google" {
-  project     = "class65gcpproject-462600"
-  region      = "london"
-  credentials = "class65gcpproject-462600-3dd7a46c5330.json"
-  alias       = "joshua"
-}
+# # Joshua
+# provider "google" {
+#   project     = "class65gcpproject-462600"
+#   region      = "london"
+#   credentials = "class65gcpproject-462600-3dd7a46c5330.json"
+#   alias       = "joshua"
+# }
 
 
 # Balerica provider
 # Vito
 provider "google" {
-  project     = "balerica-project-65702"
-  region      = "sao-paulo"
-  credentials = "balerica-project-65702-e892689e79d7.json"
+  project     = "hokuto-no-ken"
+  region      = "southamerica-east1"
+  credentials = "hokuto-no-ken-23c5316b965a.json"
   alias       = "vito"
 }

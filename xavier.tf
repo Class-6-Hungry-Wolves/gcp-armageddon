@@ -45,7 +45,7 @@ resource "google_network_connectivity_spoke" "xavier_spoke" {
   name        = "xavier-spoke"
   location    = "global"
   description = "Spoke for xavier vpc mesh"
-  hub         = google_network_connectivity_hub.team-mesh.id
+  hub         = google_network_connectivity_hub.team_mesh.id
   provider    = google.xavier
   linked_vpc_network {
     uri = google_compute_network.xavier_vpc.self_link
@@ -53,16 +53,16 @@ resource "google_network_connectivity_spoke" "xavier_spoke" {
 }
 
 resource "google_compute_vpn_gateway" "xavier_target_gateway" {
-  name    = "xavier-vpn"
-  network = google_compute_network.xavier_vpc.id
+  name     = "xavier-vpn"
+  network  = google_compute_network.xavier_vpc.id
   provider = google.xavier
-  region = "us-west1"
+  region   = "us-west1"
 }
 
 resource "google_compute_address" "xavier_vpn_static_ip" {
-  name = "xavier-vpn-static-ip"
+  name     = "xavier-vpn-static-ip"
   provider = google.xavier
-  region = "us-west1"
+  region   = "us-west1"
 }
 
 resource "google_compute_forwarding_rule" "xavier_fr_esp" {
@@ -70,7 +70,8 @@ resource "google_compute_forwarding_rule" "xavier_fr_esp" {
   ip_protocol = "ESP"
   ip_address  = google_compute_address.xavier_vpn_static_ip.address
   target      = google_compute_vpn_gateway.xavier_target_gateway.id
-  provider = google.xavier
+  region      = "us-west1"
+  provider    = google.xavier
 }
 
 resource "google_compute_forwarding_rule" "xavier_fr_udp500" {
@@ -79,7 +80,8 @@ resource "google_compute_forwarding_rule" "xavier_fr_udp500" {
   port_range  = "500"
   ip_address  = google_compute_address.xavier_vpn_static_ip.address
   target      = google_compute_vpn_gateway.xavier_target_gateway.id
-  provider = google.xavier
+  region      = "us-west1"
+  provider    = google.xavier
 }
 
 resource "google_compute_forwarding_rule" "xavier_fr_udp4500" {
@@ -88,20 +90,21 @@ resource "google_compute_forwarding_rule" "xavier_fr_udp4500" {
   port_range  = "4500"
   ip_address  = google_compute_address.xavier_vpn_static_ip.address
   target      = google_compute_vpn_gateway.xavier_target_gateway.id
-  provider = google.xavier
+  region      = "us-west1"
+  provider    = google.xavier
 }
 
 resource "google_compute_vpn_tunnel" "xavier_tunnel" {
-  name          = "xavier_tunnel"
+  name          = "xavier-tunnel"
   peer_ip       = google_compute_address.vito_balerica_vpn_static_ip.address
   shared_secret = var.xavier_vpn_shared_secret
-  provider = google.xavier
+  provider      = google.xavier
 
   target_vpn_gateway = google_compute_vpn_gateway.xavier_target_gateway.id
-  region                   = "us-west1"
+  region             = "us-west1"
 
-  local_traffic_selector  = ["10.80.40.0/24"]  # xavier's subnet
-  remote_traffic_selector = ["10.40.20.0/24"]  # Balerica's subnet
+  local_traffic_selector  = ["10.80.40.0/24"] # xavier's subnet
+  remote_traffic_selector = ["10.40.20.0/24"] # Balerica's subnet
 
   depends_on = [
     google_compute_forwarding_rule.xavier_fr_esp,
@@ -115,7 +118,7 @@ resource "google_compute_route" "xavier_to_balerica_route" {
   network    = google_compute_network.xavier_vpc.name
   dest_range = "10.80.20.0/24"
   priority   = 1000
-  provider = google.xavier
+  provider   = google.xavier
 
   next_hop_vpn_tunnel = google_compute_vpn_tunnel.xavier_tunnel.id
 }
