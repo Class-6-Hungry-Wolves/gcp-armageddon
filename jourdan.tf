@@ -114,7 +114,7 @@ resource "google_compute_vpn_tunnel" "jourdan_tunnel" {
 resource "google_compute_route" "jourdan_to_balerica_route" {
   name       = "jourdan-to-balerica-route"
   network    = google_compute_network.jourdan_vpc.name
-  dest_range = "10.80.20.0/24"
+  dest_range = "10.40.20.0/24"
   priority   = 1000
   provider = google.nick
 
