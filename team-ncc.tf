@@ -13,9 +13,10 @@ resource "google_network_connectivity_group" "team_group"  {
  provider    = google.nick
  auto_accept {
     auto_accept_projects = [
-      "gcp-01-453500", 
-      "hokuto-no-ken", 
+      "hw-team-wafflehouse-admin-6078", 
+      "balerica-project-65702", 
       "class65gcpproject-462600"
     ]
   }
+  depends_on = [google_network_connectivity_hub.team_mesh]
 }

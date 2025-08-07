@@ -50,6 +50,7 @@ resource "google_network_connectivity_spoke" "yahshua_spoke" {
   linked_vpc_network {
     uri = google_compute_network.yahshua_vpc.self_link
   }
+  depends_on = [google_network_connectivity_group.team_group]
 }
 
 resource "google_compute_vpn_gateway" "yahshua_target_gateway" {
@@ -60,9 +61,10 @@ resource "google_compute_vpn_gateway" "yahshua_target_gateway" {
 }
 
 resource "google_compute_address" "yahshua_vpn_static_ip" {
-  name     = "yahshua-vpn-static-ip"
-  provider = google.xavier
-  region   = "asia-east2"
+  name       = "yahshua-vpn-static-ip"
+  provider   = google.xavier
+  region     = "asia-east2"
+  depends_on = [google_compute_network.yahshua_vpc]
 }
 
 resource "google_compute_forwarding_rule" "yahshua_fr_esp" {
@@ -97,7 +99,7 @@ resource "google_compute_forwarding_rule" "yahshua_fr_udp4500" {
 resource "google_compute_vpn_tunnel" "yahshua_tunnel" {
   name          = "yahshua-tunnel"
   peer_ip       = google_compute_address.vito_balerica_vpn_static_ip.address
-  shared_secret = var.xavier_vpn_shared_secret
+  shared_secret = var.yahshua_vpn_shared_secret
   provider      = google.xavier
 
   target_vpn_gateway = google_compute_vpn_gateway.yahshua_target_gateway.id

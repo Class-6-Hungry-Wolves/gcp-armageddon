@@ -51,6 +51,7 @@ resource "google_network_connectivity_spoke" "nick_spoke" {
   linked_vpc_network {
     uri = google_compute_network.nick_vpc.self_link
   }
+  depends_on = [google_network_connectivity_group.team_group]
 }
 
 resource "google_compute_vpn_gateway" "nick_target_gateway" {
@@ -61,9 +62,10 @@ resource "google_compute_vpn_gateway" "nick_target_gateway" {
 }
 
 resource "google_compute_address" "nick_vpn_static_ip" {
-  name     = "nick-vpn-static-ip"
-  provider = google.nick
-  region   = "europe-west2"
+  name       = "nick-vpn-static-ip"
+  provider   = google.nick
+  region     = "europe-west2"
+  depends_on = [google_compute_network.nick_vpc]
 }
 
 resource "google_compute_forwarding_rule" "nick_fr_esp" {

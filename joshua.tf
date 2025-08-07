@@ -50,6 +50,7 @@ resource "google_network_connectivity_spoke" "joshua_spoke" {
   linked_vpc_network {
     uri = google_compute_network.joshua_vpc.self_link
   }
+  depends_on = [google_network_connectivity_group.team_group]
 }
 
 resource "google_compute_vpn_gateway" "joshua_target_gateway" {
@@ -60,9 +61,10 @@ resource "google_compute_vpn_gateway" "joshua_target_gateway" {
 }
 
 resource "google_compute_address" "joshua_vpn_static_ip" {
-  name     = "joshua-vpn-static-ip"
-  provider = google.vito
-  region   = "asia-northeast1"
+  name       = "joshua-vpn-static-ip"
+  provider   = google.vito
+  region     = "asia-northeast1"
+  depends_on = [google_compute_network.joshua_vpc]
 }
 
 resource "google_compute_forwarding_rule" "joshua_fr_esp" {

@@ -50,6 +50,7 @@ resource "google_network_connectivity_spoke" "xavier_spoke" {
   linked_vpc_network {
     uri = google_compute_network.xavier_vpc.self_link
   }
+  depends_on = [google_network_connectivity_group.team_group]
 }
 
 resource "google_compute_vpn_gateway" "xavier_target_gateway" {
@@ -60,9 +61,10 @@ resource "google_compute_vpn_gateway" "xavier_target_gateway" {
 }
 
 resource "google_compute_address" "xavier_vpn_static_ip" {
-  name     = "xavier-vpn-static-ip"
-  provider = google.xavier
-  region   = "us-west1"
+  name       = "xavier-vpn-static-ip"
+  provider   = google.xavier
+  region     = "us-west1"
+  depends_on = [google_compute_network.xavier_vpc]
 }
 
 resource "google_compute_forwarding_rule" "xavier_fr_esp" {
