@@ -18,7 +18,7 @@ Terraform code must also be accompanied by a network topology diagram, describin
 
 
 # Diagram
-![alt text](diagram.png)
+![alt text](images/diagram.png)
 
 
 
