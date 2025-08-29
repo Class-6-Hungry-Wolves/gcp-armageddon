@@ -82,8 +82,21 @@ gcloud auth activate-service-account [SERVICE_ACCOUNT_EMAIL] --key-file=[KEY_FIL
 
 # Provider, Backend, and IAM
 
+In file 0-a we have set up the providers for the different accounts we will be creating resources in.
 
+For the current configuration you must have a MINIMUM of 3 accounts to be set as providers
 
+This is how the provider needs to be set up
+```terraform 
+
+provider "google" {
+  project     = "project-name"
+  region      = "region-name"
+  credentials = "gcp-terraform-sa-credentials.json"
+  alias       = "alias-name-here"
+}
+
+```
 
 
 
