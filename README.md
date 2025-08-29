@@ -117,7 +117,9 @@ provider "google" {
 ```
 
 Account Number 1 will house all resources created in files 2 and 4
+
 Account Number 2 will house all resources created in files 5a and 5b
+
 Account Number 3 will house all resources created in files 3a, 3b, and 6
 
 The providers must have an alias such that we are able to seperate terraform resources into different accounts and projects
