@@ -421,5 +421,5 @@ terraform state list
 
 # Troubleshooting
 
-![alt text](<Screenshot 2025-07-19 230526.png>)
+![alt text](<images/Screenshot 2025-07-19 230526.png>)
 
