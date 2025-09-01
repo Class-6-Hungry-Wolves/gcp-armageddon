@@ -32,6 +32,7 @@ Before you begin, ensure you have:
 - GCP Project with billing enabled
 - Service Account with appropriate permissions
 - `gcloud` CLI authenticated
+- Generate preshared keys for your VPN gateways
 
 ### Required GCP APIs
 
@@ -101,7 +102,7 @@ For the current configuration you must have a MINIMUM of 3 accounts to be set as
 
 You may add more providers as needed if you wish to have each team members account be its own provider
 
-Ex. Jourdan.tf will have its own provider, Nick.tf will have its own provider etc.
+Ex. custom.tf will have its own providere.providernamehere.tf will have its own provider etc.
 
 This is how the providers need to be set up
 
@@ -123,6 +124,8 @@ Account Number 2 will house all resources created in files 5a and 5b
 Account Number 3 will house all resources created in files 3a, 3b, and 6
 
 The providers must have an alias such that we are able to seperate terraform resources into different accounts and projects
+
+Feel free to change what accounts will house what resources as you desire
 
 
 
@@ -156,6 +159,10 @@ terraform {
 
 # IAM 
 
+In order for the other accounts to create Network Connectivity Center spokes in their respective projects we need to add the terraform service accounts as iam members in the project residing in Account 3
+
+These iam members must have the same roles as the terraform service account that you created, with the exception of the editor role
+
 ```terraform
 
 resource "google_project_iam_member" "account-1-member" {
@@ -186,8 +193,233 @@ resource "google_project_iam_binding" "project" {
 ```
 
 
+# Files 2-5b
+
+Each file creates a custom VPC with a custom subnet that has a unique CIDR range, firewall rules that allow port 22 SSH and ICMP ping, a network connectivity spoke, a static IP for the classic VPN gateway, a classic VPN gateway with ESP and UDP forwarding rules, VPN tunnels and VPN tunnel routes. 
+
+File 2 has multiple tunnels and routes as files 3a-5b are connecting to Balerica via the VPN gateways. Please keep this in mind when adding more accounts to this project. If you don't add the corresponding tunnels and routes, this will not work.
+
+
+```terraform
+resource "google_compute_network" "custom_vpc" {
+  name                            = "custom-vpc"
+  routing_mode                    = "REGIONAL"
+  auto_create_subnetworks         = false
+  mtu                             = 1460
+  delete_default_routes_on_create = false
+  provider                        = google.providernamehere
+}
+
+resource "google_compute_subnetwork" "custom_subnet" {
+  name                     = "custom-subnet"
+  ip_cidr_range            = "10.0.0.0/24"  # Custom CIDR range here
+  region                   = "insert-regionhere"
+  network                  = google_compute_network.custom_vpc.id
+  private_ip_google_access = true
+  provider                 = google.providernamehere
+}
+
+resource "google_compute_firewall" "custom-allow-ssh" {
+  name     = "custom-allow-ssh"
+  network  = google_compute_network.custom_vpc.name
+  provider = google.providernamehere
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_compute_firewall" "custom-allow-icmp" {
+  name     = "custom-allow-icmp"
+  network  = google_compute_network.custom_vpc.name
+  provider = google.providernamehere
+  allow {
+    protocol = "icmp"
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_network_connectivity_spoke" "custom_spoke" {
+  name        = "custom-spoke"
+  location    = "global"
+  description = "Spoke for custom vpc mesh"
+  hub         = google_network_connectivity_hub.team_mesh.id
+  provider    = google.providernamehere
+  linked_vpc_network {
+    uri = google_compute_network.custom_vpc.self_link
+  }
+  depends_on = [google_network_connectivity_group.team_group]
+}
+
+resource "google_compute_vpn_gateway" "custom_target_gateway" {
+  name     = "custom-vpn"
+  network  = google_compute_network.custom_vpc.id
+  provider = google.providernamehere
+  region   = "insert-regionhere"
+}
+
+resource "google_compute_address" "custom_vpn_static_ip" {
+  name       = "custom-vpn-static-ip"
+  provider   = google.providernamehere
+  region     = "insert-regionhere"
+  depends_on = [google_compute_network.custom_vpc]
+}
+
+resource "google_compute_forwarding_rule" "custom_fr_esp" {
+  name        = "custom-fr-esp"
+  ip_protocol = "ESP"
+  ip_address  = google_compute_address.custom_vpn_static_ip.address
+  target      = google_compute_vpn_gateway.custom_target_gateway.id
+  region      = "insert-regionhere"
+  provider    = google.providernamehere
+}
+
+resource "google_compute_forwarding_rule" "custom_fr_udp500" {
+  name        = "custom-fr-udp500"
+  ip_protocol = "UDP"
+  port_range  = "500"
+  ip_address  = google_compute_address.custom_vpn_static_ip.address
+  target      = google_compute_vpn_gateway.custom_target_gateway.id
+  region      = "insert-regionhere"
+  provider    = google.providernamehere
+}
+
+resource "google_compute_forwarding_rule" "custom_fr_udp4500" {
+  name        = "custom-fr-udp4500"
+  ip_protocol = "UDP"
+  port_range  = "4500"
+  ip_address  = google_compute_address.custom_vpn_static_ip.address
+  target      = google_compute_vpn_gateway.custom_target_gateway.id
+  region      = "insert-regionhere"
+  provider    = google.providernamehere
+}
+
+resource "google_compute_vpn_tunnel" "custom_tunnel" {
+  name          = "custom-tunnel"
+  peer_ip       = google_compute_address.vito_balerica_vpn_static_ip.address
+  shared_secret = var.custom_vpn_shared_secret
+  provider      = google.providernamehere
+
+  target_vpn_gateway = google_compute_vpn_gateway.custom_target_gateway.id
+  region             = "insert-regionhere"
+
+  local_traffic_selector  = ["10.0.0.0/24"] # custom's subnet  # Custom subnet CIDR Range goes here
+  remote_traffic_selector = ["10.0.1.0/24"] # Balerica's subnet # Custom CIDR range for Balerica goes here
+
+  depends_on = [
+    google_compute_forwarding_rule.custom_fr_esp,
+    google_compute_forwarding_rule.custom_fr_udp500,
+    google_compute_forwarding_rule.custom_fr_udp4500,
+  ]
+}
+
+resource "google_compute_route" "custom_to_balerica_route" {
+  name       = "custom-to-balerica-route"
+  network    = google_compute_network.custom_vpc.name
+  dest_range = "10.0.1.0/24"      # Custom CIDR range for Balerica goes here
+  priority   = 1000
+  provider   = google.providernamehere
+
+  next_hop_vpn_tunnel = google_compute_vpn_tunnel.custom_tunnel.id
+}
+```
+
+# Team NCC
+
+The Network Connectivity Hub is what will allow the different accounts to be connected with each other. The different account projects are put together in a group and are automatically accepted into the team mesh. Each account must have their own spoke to be able to connect to the network connectivity hub.
+
+```terraform
+# The team Network Connectivity Center for team connecting to Balerica
+resource "google_network_connectivity_hub" "team_mesh" {
+  name        = "team-mesh"
+  description = "Team mesh for vpcs"
+  provider    = google.providernamehere
+}
+
+
+resource "google_network_connectivity_group" "team_group"  {
+ hub         = google_network_connectivity_hub.team_mesh.id 
+ name        = "default"
+ description = "A sample hub group"
+ provider    = google.providernamehere
+ auto_accept {
+    auto_accept_projects = [
+      "account-1projectname", 
+      "account-2projectname", 
+      "account-3projectname"
+    ]
+  }
+  depends_on = [google_network_connectivity_hub.team_mesh]
+}
+```
+
+# Variables and secrets
+
+In the variables file, we have variables for the vpn shared keys, and the iam roles which will be assigned to the other accounts terraform service iam member.
+
+```terraform 
+variable "balerica_vpn_shared_secret" {}
+variable "member1_vpn_shared_secret" {}
+variable "member2_vpn_shared_secret" {}
+variable "member3_vpn_shared_secret" {}
+variable "member4_vpn_shared_secret" {}
+variable "member5_vpn_shared_secret" {}
+
+
+variable "sa-roles" {
+  type    = set(string)
+  default = ["roles/storage.admin", "roles/artifactregistry.admin", "roles/networkconnectivity.hubAdmin"]
+}
+```
+
+These roles will allow the other terraform service accounts to provision and manage the created infrastructure, and store the configuration in the statefile within the backend configured in file 0-b
+
+Create a shell script to export terraform variables for your VPN preshared keys
+https://jemnetworks.com/psk#pskSection
+
+```bash
+export TF_VAR_balerica_vpn_shared_secret=24characterkeyhere
+export TF_VAR_member1_vpn_shared_secret=24characterkeyhere
+export TF_VAR_member2_vpn_shared_secret=24characterkeyhere
+export TF_VAR_member3_vpn_shared_secret=24characterkeyhere
+export TF_VAR_member4_vpn_shared_secret=24characterkeyhere
+export TF_VAR_member5_vpn_shared_secret=24characterkeyhere
+```
+
+Add a terraform.tfvars file but leave it empty.
 
 
 
+# Deployment
+Source the shell script file to export the terraform variables 
 
+```bash
+source ./nameofshfile.sh
+```
+
+Execute the corresponding terraform commands to deploy the infrastructure 
+```bash 
+# Initialize, validate configuration, and plan
+terraform init
+terraform validate
+terraform plan
+
+# Apply changes
+terraform apply
+
+# Destroy infrastructure
+terraform destroy
+
+#Check current state
+terraform show
+terraform state list
+```
+
+
+# Troubleshooting
+
+![alt text](<Screenshot 2025-07-19 230526.png>)
 
