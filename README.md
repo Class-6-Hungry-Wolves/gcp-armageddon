@@ -125,7 +125,9 @@ Account Number 3 will house all resources created in files 3a, 3b, and 6
 
 The providers must have an alias such that we are able to seperate terraform resources into different accounts and projects
 
-Feel free to change what accounts will house what resources as you desire
+You may set up each file to have its own provider and project instead of aggregating multiple resources within one project
+
+
 
 
 
@@ -419,7 +421,55 @@ terraform state list
 ```
 
 
+
+# Seeing if it works
+
+Create a Linux VM in two different members networks and subnets, and create a VM in the Balerica network
+The VMS must not have external IPs
+```bash
+gcloud compute instances create INSTANCE_NAME \
+    --zone=ZONE \
+    --machine-type=MACHINE_TYPE \
+    --create-disk=boot=yes,image=projects/IMAGE_PROJECT/global/images/IMAGE,size=SIZE \
+    --network-interface=network=NETWORK_NAME,subnetwork=SUBNETWROK_NAME,no-address \
+    --stack-type=STACK_TYPE \
+```
+
+Describe the instances
+
+```bash
+gcloud compute instances describe VM_NAME --zone=ZONE
+```
+
+SSH into the instances
+
+```bash
+gcloud compute ssh --project=PROJECT_ID --zone=ZONE VM_NAME
+```
+
+Once you are inside the VM, ping the internal IP of one of the member VMs and then the Balerica VM
+
+```bash
+ping -n 3 10.0.0.0/24 # Custom CIDR range of member VM
+ping -n 3 10.0.1.0/24 # Custom CIDR range of Balerica VM
+``` 
+
+
+
 # Troubleshooting
 
 ![alt text](<images/Screenshot 2025-07-19 230526.png>)
 
+If you get a quota exceeded error you may need to spread out infrastructure into different projects as opposed to aggregating them within a single project. This can happen particularly often with the VPCs and forwarding rules.
+
+
+If you are doing a deployment, make sure to start with sourcing the shell script with the vpn preshared keys otherwise terraform will ask you upon doing a plan or apply to pass in the variables. If you cancel the operation, this can lead to the terraform state locking. 
+
+![alt text](<images/Screenshot 2025-09-01 185643.png>)
+
+In order to unlock the state, execute the following command:
+
+```bash
+
+terraform force-unlock <PUT_LOCK_ID_NUMBER_HERE>
+```

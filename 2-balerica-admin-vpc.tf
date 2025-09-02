@@ -212,7 +212,7 @@ resource "google_compute_vpn_tunnel" "vito_balerica_to_yahshua_tunnel" {
   target_vpn_gateway = google_compute_vpn_gateway.vito_balerica_target_gateway.id
 
   local_traffic_selector  = ["10.40.20.0/24"]  # Balerica subnet
-  remote_traffic_selector = ["10.80.120.0/24"] # joshua subnet
+  remote_traffic_selector = ["10.80.120.0/24"] # yahshua subnet
 
   depends_on = [
     google_compute_forwarding_rule.vito_balerica_fr_esp,
@@ -225,7 +225,7 @@ resource "google_compute_vpn_tunnel" "vito_balerica_to_yahshua_tunnel" {
 resource "google_compute_route" "vito_balerica_to_yahshua_route" {
   name       = "vito-balerica-to-yahshua-route"
   network    = google_compute_network.vito_balerica_inc_main.name
-  dest_range = "10.80.120.0/24" # joshua's subnet
+  dest_range = "10.80.120.0/24" # yahshua's subnet
   priority   = 1000
   provider   = google.vito
 
