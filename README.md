@@ -431,7 +431,7 @@ gcloud compute instances create INSTANCE_NAME \
     --zone=ZONE \
     --machine-type=MACHINE_TYPE \
     --create-disk=boot=yes,image=projects/IMAGE_PROJECT/global/images/IMAGE,size=SIZE \
-    --network-interface=network=NETWORK_NAME,subnetwork=SUBNETWROK_NAME,no-address \
+    --network-interface network=NETWORK_NAME,subnetwork=SUBNETWORK_NAME,no-address \
     --stack-type=STACK_TYPE \
 ```
 
@@ -450,8 +450,8 @@ gcloud compute ssh --project=PROJECT_ID --zone=ZONE VM_NAME
 Once you are inside the VM, ping the internal IP of one of the member VMs and then the Balerica VM
 
 ```bash
-ping -n 3 10.0.0.0/24 # Custom CIDR range of member VM
-ping -n 3 10.0.1.0/24 # Custom CIDR range of Balerica VM
+ping -c 3 10.0.0.0/24 # Custom CIDR range of member VM
+ping -c 3 10.0.1.0/24 # Custom CIDR range of Balerica VM
 ``` 
 
 
